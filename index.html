@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pencatatan Nomor Surat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Sistem Pencatatan Nomor Surat</h1>
+            <p class="text-gray-600">Kelola dan catat semua nomor surat dengan mudah</p>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <button onclick="showLetterForm('SK')" class="bg-red-500 hover:bg-red-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
+                <div class="flex items-center mb-3">
+                    <div class="text-3xl mr-3">📋</div>
+                    <div>
+                        <div class="text-lg font-bold">Surat Keputusan (SK)</div>
+                    </div>
+                </div>
+                <div class="text-sm opacity-90 leading-relaxed">
+                    Menetapkan suatu keputusan resmi seperti pengangkatan, penunjukan panitia, pembagian tugas, dll.
+                </div>
+            </button>
+            
+            <button onclick="showLetterForm('PR')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
+                <div class="flex items-center mb-3">
+                    <div class="text-3xl mr-3">📢</div>
+                    <div>
+                        <div class="text-lg font-bold">Surat Pemberitahuan (PR)</div>
+                    </div>
+                </div>
+                <div class="text-sm opacity-90 leading-relaxed">
+                    Menyampaikan informasi resmi, termasuk pengumuman, perubahan jadwal, aturan baru, dll.
+                </div>
+            </button>
+            
+            <button onclick="showLetterForm('UD')" class="bg-green-500 hover:bg-green-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
+                <div class="flex items-center mb-3">
+                    <div class="text-3xl mr-3">✉️</div>
+                    <div>
+                        <div class="text-lg font-bold">Surat Undangan (UD)</div>
+                    </div>
+                </div>
+                <div class="text-sm opacity-90 leading-relaxed">
+                    Mengundang pihak terkait untuk rapat, pertemuan orang tua, kegiatan acara, pelatihan, dll.
+                </div>
+            </button>
+            
+            <button onclick="showLetterForm('SP')" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
+                <div class="flex items-center mb-3">
+                    <div class="text-3xl mr-3">📝</div>
+                    <div>
+                        <div class="text-lg font-bold">Surat Pernyataan (SP)</div>
+                    </div>
+                </div>
+                <div class="text-sm opacity-90 leading-relaxed">
+                    Berisi pernyataan atau komitmen dari seseorang. Bisa berupa izin, kesanggupan, atau pernyataan dukungan.
+                </div>
+            </button>
+            
+            <button onclick="showLetterForm('ST')" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
+                <div class="flex items-center mb-3">
+                    <div class="text-3xl mr-3">📋</div>
+                    <div>
+                        <div class="text-lg font-bold">Surat Tugas / Instruksi (ST)</div>
+                    </div>
+                </div>
+                <div class="text-sm opacity-90 leading-relaxed">
+                    Digunakan untuk menugaskan seseorang atau memberi arahan pelaksanaan kegiatan tertentu.
+                </div>
+            </button>
+            
+            <button onclick="showLetterForm('RM')" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
+                <div class="flex items-center mb-3">
+                    <div class="text-3xl mr-3">🏛️</div>
+                    <div>
+                        <div class="text-lg font-bold">Surat Rekomendasi / Keterangan / Legalitas (RM)</div>
+                    </div>
+                </div>
+                <div class="text-sm opacity-90 leading-relaxed">
+                    Digunakan untuk memberi keterangan resmi, rekomendasi, pengantar, atau legalitas atas nama lembaga.
+                </div>
+            </button>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-8">
+            <!-- Form Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800" id="formTitle">Pilih Jenis Surat</h2>
+                    <button onclick="goHome()" id="homeButton" class="hidden bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                        🏠 Beranda
+                    </button>
+                </div>
+                
+                <div id="letterForm" class="hidden">
+                    <div id="letterExample" class="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                        <div class="flex items-start space-x-3">
+                            <div class="text-blue-500 text-xl">💡</div>
+                            <div>
+                                <div class="font-semibold text-blue-800 mb-1">Contoh Format Nomor Surat:</div>
+                                <div class="text-blue-700 font-mono text-sm" id="exampleFormat"></div>
+                                <div class="text-blue-600 text-xs mt-1" id="exampleDescription"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form onsubmit="addLetter(event)">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Nomor Surat</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="letterNumber" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan nomor surat" required>
+                                <button type="button" onclick="generateNumber()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200">
+                                    🔄 Auto
+                                </button>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Klik "Auto" untuk generate nomor otomatis berdasarkan urutan</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Perihal</label>
+                            <input type="text" id="letterSubject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan perihal surat" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Tanggal</label>
+                            <input type="date" id="letterDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Keterangan</label>
+                            <textarea id="letterNotes" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Keterangan tambahan (opsional)"></textarea>
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
+                                Simpan Surat
+                            </button>
+                            <button type="button" onclick="viewLetters()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
+                                📋 Lihat Riwayat
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div id="selectPrompt" class="text-center py-12">
+                    <div class="text-6xl mb-4">📄</div>
+                    <p class="text-gray-500">Pilih jenis surat di atas untuk mulai mencatat</p>
+                </div>
+
+                <div id="letterHistory" class="hidden">
+                    <div class="mb-4">
+                        <input type="text" id="searchInput" placeholder="Cari nomor surat atau perihal..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onkeyup="filterLetters()">
+                    </div>
+                    <div id="letterList" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- Letters will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Log Kegiatan</h2>
+                    <button onclick="clearLog()" class="text-red-500 hover:text-red-700 text-sm font-medium">Hapus Semua</button>
+                </div>
+                
+                <div id="activityLog" class="space-y-3 max-h-96 overflow-y-auto">
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">📋</div>
+                        <p>Belum ada aktivitas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Statistik Surat</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="statistics">
+                <div class="text-center p-4 bg-red-50 rounded-lg">
+                    <div class="text-2xl font-bold text-red-600" id="stat-SK">0</div>
+                    <div class="text-sm text-gray-600">SK</div>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-600" id="stat-PR">0</div>
+                    <div class="text-sm text-gray-600">PR</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-600" id="stat-UD">0</div>
+                    <div class="text-sm text-gray-600">UD</div>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-600" id="stat-SP">0</div>
+                    <div class="text-sm text-gray-600">SP</div>
+                </div>
+                <div class="text-center p-4 bg-orange-50 rounded-lg">
+                    <div class="text-2xl font-bold text-orange-600" id="stat-ST">0</div>
+                    <div class="text-sm text-gray-600">ST</div>
+                </div>
+                <div class="text-center p-4 bg-teal-50 rounded-lg">
+                    <div class="text-2xl font-bold text-teal-600" id="stat-RM">0</div>
+                    <div class="text-sm text-gray-600">RM</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLetterType = '';
+        let letters = JSON.parse(localStorage.getItem('letters')) || [];
+        let activities = JSON.parse(localStorage.getItem('activities')) || [];
+
+        const letterTypes = {
+            'SK': 'Surat Keputusan',
+            'PR': 'Surat Pemberitahuan', 
+            'UD': 'Surat Undangan',
+            'SP': 'Surat Pernyataan',
+            'ST': 'Surat Tugas / Instruksi',
+            'RM': 'Surat Rekomendasi/Keterangan/Legalitas'
+        };
+
+        const letterFormats = {
+            'SK': {
+                example: '001/SD/SK/VII/2025',
+                description: 'Format: [Nomor Urut]/[Instansi]/SK/[Bulan Romawi]/[Tahun]'
+            },
+            'PR': {
+                example: '001/SD/PR/VII/2025',
+                description: 'Format: [Nomor Urut]/[Instansi]/PR/[Bulan Romawi]/[Tahun]'
+            },
+            'UD': {
+                example: '001/SD/UD/VII/2025',
+                description: 'Format: [Nomor Urut]/[Instansi]/UD/[Bulan Romawi]/[Tahun]'
+            },
+            'SP': {
+                example: '001/SD/SP/VII/2025',
+                description: 'Format: [Nomor Urut]/[Instansi]/SP/[Bulan Romawi]/[Tahun]'
+            },
+            'ST': {
+                example: '001/SD/ST/VII/2025',
+                description: 'Format: [Nomor Urut]/[Instansi]/ST/[Bulan Romawi]/[Tahun]'
+            },
+            'RM': {
+                example: '001/SD/RM/VII/2025',
+                description: 'Format: [Nomor Urut]/[Instansi]/RM/[Bulan Romawi]/[Tahun]'
+            }
+        };
+
+        function showLetterForm(type) {
+            currentLetterType = type;
+            document.getElementById('formTitle').textContent = `Form ${letterTypes[type]} (${type})`;
+            document.getElementById('letterForm').classList.remove('hidden');
+            document.getElementById('selectPrompt').classList.add('hidden');
+            document.getElementById('letterHistory').classList.add('hidden');
+            document.getElementById('homeButton').classList.remove('hidden');
+            
+            // Show example format
+            document.getElementById('exampleFormat').textContent = letterFormats[type].example;
+            document.getElementById('exampleDescription').textContent = letterFormats[type].description;
+            
+            // Set today's date as default
+            document.getElementById('letterDate').valueAsDate = new Date();
+            
+            // Clear form
+            document.getElementById('letterNumber').value = '';
+            document.getElementById('letterSubject').value = '';
+            document.getElementById('letterNotes').value = '';
+        }
+
+        function goHome() {
+            document.getElementById('formTitle').textContent = 'Pilih Jenis Surat';
+            document.getElementById('letterForm').classList.add('hidden');
+            document.getElementById('letterHistory').classList.add('hidden');
+            document.getElementById('selectPrompt').classList.remove('hidden');
+            document.getElementById('homeButton').classList.add('hidden');
+            currentLetterType = '';
+        }
+
+        function viewLetters() {
+            document.getElementById('formTitle').textContent = `Riwayat ${letterTypes[currentLetterType]} (${currentLetterType})`;
+            document.getElementById('letterForm').classList.add('hidden');
+            document.getElementById('selectPrompt').classList.add('hidden');
+            document.getElementById('letterHistory').classList.remove('hidden');
+            displayLetters();
+        }
+
+        function displayLetters() {
+            const letterList = document.getElementById('letterList');
+            const filteredLetters = letters.filter(letter => letter.type === currentLetterType);
+            
+            if (filteredLetters.length === 0) {
+                letterList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">📄</div>
+                        <p>Belum ada surat ${letterTypes[currentLetterType]}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            letterList.innerHTML = filteredLetters.sort((a, b) => new Date(b.date) - new Date(a.date)).map(letter => `
+                <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="font-semibold text-gray-800">${letter.number}</div>
+                        <div class="text-sm text-gray-500">${new Date(letter.date).toLocaleDateString('id-ID')}</div>
+                    </div>
+                    <div class="text-gray-700 mb-2">${letter.subject}</div>
+                    ${letter.notes ? `<div class="text-sm text-gray-600 italic">${letter.notes}</div>` : ''}
+                    <div class="flex justify-end mt-3">
+                        <button onclick="deleteLetter(${letter.id})" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                            🗑️ Hapus
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterLetters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const letterList = document.getElementById('letterList');
+            const filteredLetters = letters.filter(letter => 
+                letter.type === currentLetterType && 
+                (letter.number.toLowerCase().includes(searchTerm) || 
+                 letter.subject.toLowerCase().includes(searchTerm))
+            );
+            
+            if (filteredLetters.length === 0) {
+                letterList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">🔍</div>
+                        <p>Tidak ada surat yang ditemukan</p>
+                    </div>
+                `;
+                return;
+            }
+
+            letterList.innerHTML = filteredLetters.sort((a, b) => new Date(b.date) - new Date(a.date)).map(letter => `
+                <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="font-semibold text-gray-800">${letter.number}</div>
+                        <div class="text-sm text-gray-500">${new Date(letter.date).toLocaleDateString('id-ID')}</div>
+                    </div>
+                    <div class="text-gray-700 mb-2">${letter.subject}</div>
+                    ${letter.notes ? `<div class="text-sm text-gray-600 italic">${letter.notes}</div>` : ''}
+                    <div class="flex justify-end mt-3">
+                        <button onclick="deleteLetter(${letter.id})" class="text-red-500 hover:text-red-700 text-sm font-medium">
+                            🗑️ Hapus
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteLetter(letterId) {
+            if (confirm('Apakah Anda yakin ingin menghapus surat ini?')) {
+                // Find the letter to get its details before deletion
+                const letterToDelete = letters.find(letter => letter.id === letterId);
+                
+                if (letterToDelete) {
+                    // Remove the letter from array
+                    letters = letters.filter(letter => letter.id !== letterId);
+                    localStorage.setItem('letters', JSON.stringify(letters));
+                    
+                    // Add to activity log
+                    const activity = {
+                        id: Date.now(),
+                        action: 'Menghapus surat',
+                        details: `${letterTypes[letterToDelete.type]} - ${letterToDelete.number}`,
+                        timestamp: new Date().toLocaleString('id-ID')
+                    };
+                    
+                    activities.unshift(activity);
+                    localStorage.setItem('activities', JSON.stringify(activities));
+                    
+                    // Refresh displays
+                    displayLetters();
+                    updateActivityLog();
+                    updateStatistics();
+                    showNotification('Surat berhasil dihapus!', 'success');
+                } else {
+                    showNotification('Surat tidak ditemukan!', 'error');
+                }
+            }
+        }
+
+        function addLetter(event) {
+            event.preventDefault();
+            
+            const letterData = {
+                id: Date.now(),
+                type: currentLetterType,
+                number: document.getElementById('letterNumber').value,
+                subject: document.getElementById('letterSubject').value,
+                date: document.getElementById('letterDate').value,
+                notes: document.getElementById('letterNotes').value,
+                createdAt: new Date().toISOString()
+            };
+
+            letters.push(letterData);
+            localStorage.setItem('letters', JSON.stringify(letters));
+
+            // Add to activity log
+            const activity = {
+                id: Date.now(),
+                action: 'Menambah surat',
+                details: `${letterTypes[currentLetterType]} - ${letterData.number}`,
+                timestamp: new Date().toLocaleString('id-ID')
+            };
+            
+            activities.unshift(activity);
+            localStorage.setItem('activities', JSON.stringify(activities));
+
+            // Reset form
+            event.target.reset();
+            document.getElementById('letterDate').valueAsDate = new Date();
+            
+            // Update displays
+            updateActivityLog();
+            updateStatistics();
+            
+            // Show success message
+            showNotification('Surat berhasil disimpan!', 'success');
+        }
+
+        function updateActivityLog() {
+            const logContainer = document.getElementById('activityLog');
+            
+            if (activities.length === 0) {
+                logContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">📋</div>
+                        <p>Belum ada aktivitas</p>
+                    </div>
+                `;
+                return;
+            }
+
+            logContainer.innerHTML = activities.slice(0, 10).map(activity => `
+                <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <div class="text-blue-500 mt-1">📝</div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-800">${activity.action}</div>
+                        <div class="text-sm text-gray-600">${activity.details}</div>
+                        <div class="text-xs text-gray-400 mt-1">${activity.timestamp}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStatistics() {
+            const stats = {};
+            Object.keys(letterTypes).forEach(type => {
+                stats[type] = letters.filter(letter => letter.type === type).length;
+                document.getElementById(`stat-${type}`).textContent = stats[type];
+            });
+        }
+
+        function clearLog() {
+            if (confirm('Apakah Anda yakin ingin menghapus semua log aktivitas?')) {
+                activities = [];
+                localStorage.setItem('activities', JSON.stringify(activities));
+                updateActivityLog();
+                showNotification('Log aktivitas berhasil dihapus', 'info');
+            }
+        }
+
+        function generateNumber() {
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1;
+            
+            // Roman numerals for months
+            const romanMonths = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+            const romanMonth = romanMonths[currentMonth - 1];
+            
+            // Get existing letters of current type for this month and year
+            const existingLetters = letters.filter(letter => {
+                if (letter.type !== currentLetterType) return false;
+                const letterDate = new Date(letter.date);
+                return letterDate.getFullYear() === currentYear && letterDate.getMonth() === currentMonth - 1;
+            });
+            
+            // Generate next number
+            const nextNumber = (existingLetters.length + 1).toString().padStart(3, '0');
+            
+            // Generate full number format
+            const generatedNumber = `${nextNumber}/SD/${currentLetterType}/${romanMonth}/${currentYear}`;
+            
+            document.getElementById('letterNumber').value = generatedNumber;
+            showNotification('Nomor surat berhasil di-generate!', 'success');
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            let bgColor = 'bg-blue-500';
+            if (type === 'success') bgColor = 'bg-green-500';
+            if (type === 'error') bgColor = 'bg-red-500';
+            if (type === 'info') bgColor = 'bg-blue-500';
+            
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${bgColor} text-white font-medium`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateActivityLog();
+            updateStatistics();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'975a17d71066514a',t:'MTc1NjI4MjIzMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
