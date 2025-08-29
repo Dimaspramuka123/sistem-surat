@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pencatatan Nomor Surat</title>
+    <title>Sistem Pencatatan Nomor Surat - GitHub Storage</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -15,11 +15,44 @@
         <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-800 mb-2">Sistem Pencatatan Nomor Surat</h1>
-            <p class="text-gray-600">Kelola dan catat semua nomor surat dengan mudah</p>
+            <p class="text-gray-600">Data tersimpan terpusat di GitHub</p>
+        </div>
+
+        <!-- GitHub Configuration -->
+        <div id="configSection" class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">⚙️ Konfigurasi GitHub</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">GitHub Username</label>
+                    <input type="text" id="githubUsername" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="username-github-anda">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">Repository Name</label>
+                    <input type="text" id="githubRepo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="sistem-surat">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2">Personal Access Token</label>
+                    <input type="password" id="githubToken" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="ghp_xxxxxxxxxxxx">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="testConnection()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium">
+                        🔗 Test Koneksi
+                    </button>
+                </div>
+            </div>
+            <div class="mt-4 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                <div class="text-sm text-yellow-800">
+                    <strong>Cara Setup:</strong><br>
+                    1. Buat Personal Access Token di GitHub Settings → Developer settings → Personal access tokens<br>
+                    2. Berikan permission: <code>repo</code> (Full control of private repositories)<br>
+                    3. Masukkan username, nama repository, dan token di atas
+                </div>
+            </div>
+            <div id="connectionStatus" class="mt-4 hidden"></div>
         </div>
 
         <!-- Navigation Buttons -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="mainButtons">
             <button onclick="showLetterForm('SK')" class="bg-red-500 hover:bg-red-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
                 <div class="flex items-center mb-3">
                     <div class="text-3xl mr-3">📋</div>
@@ -144,7 +177,7 @@
                         
                         <div class="flex space-x-3">
                             <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
-                                Simpan Surat
+                                💾 Simpan ke GitHub
                             </button>
                             <button type="button" onclick="viewLetters()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
                                 📋 Lihat Riwayat
@@ -172,7 +205,12 @@
             <div class="bg-white rounded-xl shadow-lg p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-800">Log Kegiatan</h2>
-                    <button onclick="clearLog()" class="text-red-500 hover:text-red-700 text-sm font-medium">Hapus Semua</button>
+                    <div class="flex space-x-2">
+                        <button onclick="syncData()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                            🔄 Sync
+                        </button>
+                        <button onclick="clearLog()" class="text-red-500 hover:text-red-700 text-sm font-medium">Hapus Semua</button>
+                    </div>
                 </div>
                 
                 <div id="activityLog" class="space-y-3 max-h-96 overflow-y-auto">
@@ -218,8 +256,13 @@
 
     <script>
         let currentLetterType = '';
-        let letters = JSON.parse(localStorage.getItem('letters')) || [];
-        let activities = JSON.parse(localStorage.getItem('activities')) || [];
+        let letters = [];
+        let activities = [];
+        let githubConfig = {
+            username: '',
+            repo: '',
+            token: ''
+        };
 
         const letterTypes = {
             'SK': 'Surat Keputusan',
@@ -231,32 +274,158 @@
         };
 
         const letterFormats = {
-            'SK': {
-                example: '001/SD/SK/VII/2025',
-                description: 'Format: [Nomor Urut]/[Instansi]/SK/[Bulan Romawi]/[Tahun]'
-            },
-            'PR': {
-                example: '001/SD/PR/VII/2025',
-                description: 'Format: [Nomor Urut]/[Instansi]/PR/[Bulan Romawi]/[Tahun]'
-            },
-            'UD': {
-                example: '001/SD/UD/VII/2025',
-                description: 'Format: [Nomor Urut]/[Instansi]/UD/[Bulan Romawi]/[Tahun]'
-            },
-            'SP': {
-                example: '001/SD/SP/VII/2025',
-                description: 'Format: [Nomor Urut]/[Instansi]/SP/[Bulan Romawi]/[Tahun]'
-            },
-            'ST': {
-                example: '001/SD/ST/VII/2025',
-                description: 'Format: [Nomor Urut]/[Instansi]/ST/[Bulan Romawi]/[Tahun]'
-            },
-            'RM': {
-                example: '001/SD/RM/VII/2025',
-                description: 'Format: [Nomor Urut]/[Instansi]/RM/[Bulan Romawi]/[Tahun]'
-            }
+            'SK': { example: '001/SD/SK/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/SK/[Bulan Romawi]/[Tahun]' },
+            'PR': { example: '001/SD/PR/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/PR/[Bulan Romawi]/[Tahun]' },
+            'UD': { example: '001/SD/UD/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/UD/[Bulan Romawi]/[Tahun]' },
+            'SP': { example: '001/SD/SP/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/SP/[Bulan Romawi]/[Tahun]' },
+            'ST': { example: '001/SD/ST/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/ST/[Bulan Romawi]/[Tahun]' },
+            'RM': { example: '001/SD/RM/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/RM/[Bulan Romawi]/[Tahun]' }
         };
 
+        // GitHub API Functions
+        async function testConnection() {
+            const username = document.getElementById('githubUsername').value;
+            const repo = document.getElementById('githubRepo').value;
+            const token = document.getElementById('githubToken').value;
+
+            if (!username || !repo || !token) {
+                showNotification('Mohon isi semua field konfigurasi!', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${username}/${repo}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.ok) {
+                    githubConfig = { username, repo, token };
+                    localStorage.setItem('githubConfig', JSON.stringify(githubConfig));
+                    
+                    document.getElementById('connectionStatus').innerHTML = `
+                        <div class="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                            <div class="text-green-800">✅ Koneksi berhasil! Repository: ${username}/${repo}</div>
+                        </div>
+                    `;
+                    document.getElementById('connectionStatus').classList.remove('hidden');
+                    
+                    showNotification('Koneksi GitHub berhasil!', 'success');
+                    await syncData();
+                } else {
+                    throw new Error('Repository tidak ditemukan atau token tidak valid');
+                }
+            } catch (error) {
+                document.getElementById('connectionStatus').innerHTML = `
+                    <div class="p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
+                        <div class="text-red-800">❌ Koneksi gagal: ${error.message}</div>
+                    </div>
+                `;
+                document.getElementById('connectionStatus').classList.remove('hidden');
+                showNotification('Koneksi GitHub gagal!', 'error');
+            }
+        }
+
+        async function saveToGitHub(data, filename) {
+            if (!githubConfig.token) {
+                showNotification('Konfigurasi GitHub belum diatur!', 'error');
+                return false;
+            }
+
+            try {
+                // Get current file (if exists) to get SHA
+                let sha = null;
+                try {
+                    const getResponse = await fetch(`https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/data/${filename}`, {
+                        headers: {
+                            'Authorization': `token ${githubConfig.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    if (getResponse.ok) {
+                        const fileData = await getResponse.json();
+                        sha = fileData.sha;
+                    }
+                } catch (e) {
+                    // File doesn't exist, that's okay
+                }
+
+                // Save/update file
+                const content = btoa(JSON.stringify(data, null, 2));
+                const response = await fetch(`https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/data/${filename}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Update ${filename}`,
+                        content: content,
+                        sha: sha
+                    })
+                });
+
+                return response.ok;
+            } catch (error) {
+                console.error('Error saving to GitHub:', error);
+                return false;
+            }
+        }
+
+        async function loadFromGitHub(filename) {
+            if (!githubConfig.token) return null;
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/data/${filename}`, {
+                    headers: {
+                        'Authorization': `token ${githubConfig.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.ok) {
+                    const fileData = await response.json();
+                    const content = atob(fileData.content);
+                    return JSON.parse(content);
+                }
+            } catch (error) {
+                console.error('Error loading from GitHub:', error);
+            }
+            return null;
+        }
+
+        async function syncData() {
+            if (!githubConfig.token) {
+                showNotification('Konfigurasi GitHub belum diatur!', 'error');
+                return;
+            }
+
+            showNotification('Sinkronisasi data...', 'info');
+
+            try {
+                // Load data from GitHub
+                const githubLetters = await loadFromGitHub('letters.json');
+                const githubActivities = await loadFromGitHub('activities.json');
+
+                if (githubLetters) letters = githubLetters;
+                if (githubActivities) activities = githubActivities;
+
+                updateActivityLog();
+                updateStatistics();
+                if (document.getElementById('letterHistory').classList.contains('hidden') === false) {
+                    displayLetters();
+                }
+
+                showNotification('Data berhasil disinkronkan!', 'success');
+            } catch (error) {
+                showNotification('Gagal sinkronisasi data!', 'error');
+            }
+        }
+
+        // UI Functions
         function showLetterForm(type) {
             currentLetterType = type;
             document.getElementById('formTitle').textContent = `Form ${letterTypes[type]} (${type})`;
@@ -265,14 +434,10 @@
             document.getElementById('letterHistory').classList.add('hidden');
             document.getElementById('homeButton').classList.remove('hidden');
             
-            // Show example format
             document.getElementById('exampleFormat').textContent = letterFormats[type].example;
             document.getElementById('exampleDescription').textContent = letterFormats[type].description;
             
-            // Set today's date as default
             document.getElementById('letterDate').valueAsDate = new Date();
-            
-            // Clear form
             document.getElementById('letterNumber').value = '';
             document.getElementById('letterSubject').value = '';
             document.getElementById('letterNotes').value = '';
@@ -362,17 +527,13 @@
             `).join('');
         }
 
-        function deleteLetter(letterId) {
+        async function deleteLetter(letterId) {
             if (confirm('Apakah Anda yakin ingin menghapus surat ini?')) {
-                // Find the letter to get its details before deletion
                 const letterToDelete = letters.find(letter => letter.id === letterId);
                 
                 if (letterToDelete) {
-                    // Remove the letter from array
                     letters = letters.filter(letter => letter.id !== letterId);
-                    localStorage.setItem('letters', JSON.stringify(letters));
                     
-                    // Add to activity log
                     const activity = {
                         id: Date.now(),
                         action: 'Menghapus surat',
@@ -381,21 +542,28 @@
                     };
                     
                     activities.unshift(activity);
-                    localStorage.setItem('activities', JSON.stringify(activities));
                     
-                    // Refresh displays
+                    // Save to GitHub
+                    await saveToGitHub(letters, 'letters.json');
+                    await saveToGitHub(activities, 'activities.json');
+                    
                     displayLetters();
                     updateActivityLog();
                     updateStatistics();
-                    showNotification('Surat berhasil dihapus!', 'success');
+                    showNotification('Surat berhasil dihapus dan disimpan ke GitHub!', 'success');
                 } else {
                     showNotification('Surat tidak ditemukan!', 'error');
                 }
             }
         }
 
-        function addLetter(event) {
+        async function addLetter(event) {
             event.preventDefault();
+            
+            if (!githubConfig.token) {
+                showNotification('Konfigurasi GitHub belum diatur!', 'error');
+                return;
+            }
             
             const letterData = {
                 id: Date.now(),
@@ -408,9 +576,7 @@
             };
 
             letters.push(letterData);
-            localStorage.setItem('letters', JSON.stringify(letters));
 
-            // Add to activity log
             const activity = {
                 id: Date.now(),
                 action: 'Menambah surat',
@@ -419,18 +585,23 @@
             };
             
             activities.unshift(activity);
-            localStorage.setItem('activities', JSON.stringify(activities));
 
-            // Reset form
-            event.target.reset();
-            document.getElementById('letterDate').valueAsDate = new Date();
-            
-            // Update displays
-            updateActivityLog();
-            updateStatistics();
-            
-            // Show success message
-            showNotification('Surat berhasil disimpan!', 'success');
+            // Save to GitHub
+            const lettersSaved = await saveToGitHub(letters, 'letters.json');
+            const activitiesSaved = await saveToGitHub(activities, 'activities.json');
+
+            if (lettersSaved && activitiesSaved) {
+                event.target.reset();
+                document.getElementById('letterDate').valueAsDate = new Date();
+                updateActivityLog();
+                updateStatistics();
+                showNotification('Surat berhasil disimpan ke GitHub!', 'success');
+            } else {
+                // Remove from local arrays if GitHub save failed
+                letters.pop();
+                activities.shift();
+                showNotification('Gagal menyimpan ke GitHub!', 'error');
+            }
         }
 
         function updateActivityLog() {
@@ -466,35 +637,30 @@
             });
         }
 
-        function clearLog() {
+        async function clearLog() {
             if (confirm('Apakah Anda yakin ingin menghapus semua log aktivitas?')) {
                 activities = [];
-                localStorage.setItem('activities', JSON.stringify(activities));
+                await saveToGitHub(activities, 'activities.json');
                 updateActivityLog();
                 showNotification('Log aktivitas berhasil dihapus', 'info');
             }
         }
 
-        function generateNumber() {
+        async function generateNumber() {
             const currentDate = new Date();
             const currentYear = currentDate.getFullYear();
             const currentMonth = currentDate.getMonth() + 1;
             
-            // Roman numerals for months
             const romanMonths = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
             const romanMonth = romanMonths[currentMonth - 1];
             
-            // Get existing letters of current type for this month and year
             const existingLetters = letters.filter(letter => {
                 if (letter.type !== currentLetterType) return false;
                 const letterDate = new Date(letter.date);
                 return letterDate.getFullYear() === currentYear && letterDate.getMonth() === currentMonth - 1;
             });
             
-            // Generate next number
             const nextNumber = (existingLetters.length + 1).toString().padStart(3, '0');
-            
-            // Generate full number format
             const generatedNumber = `${nextNumber}/SD/${currentLetterType}/${romanMonth}/${currentYear}`;
             
             document.getElementById('letterNumber').value = generatedNumber;
@@ -520,9 +686,21 @@
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Load saved GitHub config
+            const savedConfig = localStorage.getItem('githubConfig');
+            if (savedConfig) {
+                githubConfig = JSON.parse(savedConfig);
+                document.getElementById('githubUsername').value = githubConfig.username;
+                document.getElementById('githubRepo').value = githubConfig.repo;
+                document.getElementById('githubToken').value = githubConfig.token;
+                
+                // Auto sync on load
+                syncData();
+            }
+            
             updateActivityLog();
             updateStatistics();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'975a17d71066514a',t:'MTc1NjI4MjIzMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9768c15a551dcec2',t:'MTc1NjQzNTk3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
