@@ -5,9 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Pencatatan Nomor Surat - GitHub Storage</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -244,12 +257,8 @@
         let letters = [];
         let activities = [];
         
-        // GitHub configuration - sudah diatur otomatis
-        let githubConfig = {
-            username: 'Dimaspramuka123',
-            repo: 'sistem-surat',
-            token: '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'
-        };
+        // Backend API configuration - Token aman di server
+        const API_BASE_URL = 'http://localhost:3000/api';  // Sesuaikan dengan port server Anda
 
         const letterTypes = {
             'SK': 'Surat Keputusan',
@@ -269,79 +278,55 @@
             'RM': { example: '001/SD/RM/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/RM/[Bulan Romawi]/[Tahun]' }
         };
 
-        // GitHub API Functions
-        async function saveToGitHub(data, filename) {
+        // Backend API Functions - Token aman di server
+        async function saveData(data, type) {
             try {
-                // Get current file (if exists) to get SHA
-                let sha = null;
-                try {
-                    const getResponse = await fetch(`https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/data/${filename}`, {
-                        headers: {
-                            'Authorization': `token ${githubConfig.token}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    });
-                    if (getResponse.ok) {
-                        const fileData = await getResponse.json();
-                        sha = fileData.sha;
-                    }
-                } catch (e) {
-                    // File doesn't exist, that's okay
-                }
-
-                // Save/update file
-                const content = btoa(JSON.stringify(data, null, 2));
-                const response = await fetch(`https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/data/${filename}`, {
-                    method: 'PUT',
+                const response = await fetch(`${API_BASE_URL}/save`, {
+                    method: 'POST',
                     headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Accept': 'application/vnd.github.v3+json',
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        message: `Update ${filename}`,
-                        content: content,
-                        sha: sha
+                        type: type,  // 'letters' atau 'activities'
+                        data: data
                     })
                 });
 
-                return response.ok;
+                if (response.ok) {
+                    const result = await response.json();
+                    return result.success;
+                }
+                return false;
             } catch (error) {
-                console.error('Error saving to GitHub:', error);
+                console.error('Error saving data:', error);
                 return false;
             }
         }
 
-        async function loadFromGitHub(filename) {
+        async function loadData(type) {
             try {
-                const response = await fetch(`https://api.github.com/repos/${githubConfig.username}/${githubConfig.repo}/contents/data/${filename}`, {
-                    headers: {
-                        'Authorization': `token ${githubConfig.token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-
+                const response = await fetch(`${API_BASE_URL}/load/${type}`);
+                
                 if (response.ok) {
-                    const fileData = await response.json();
-                    const content = atob(fileData.content);
-                    return JSON.parse(content);
+                    const result = await response.json();
+                    return result.data;
                 }
             } catch (error) {
-                console.error('Error loading from GitHub:', error);
+                console.error('Error loading data:', error);
             }
             return null;
         }
 
         async function syncData() {
-            showNotification('Sinkronisasi data dari GitHub...', 'info');
+            showNotification('Sinkronisasi data dari server...', 'info');
 
             try {
-                // Load data from GitHub
-                const githubLetters = await loadFromGitHub('letters.json');
-                const githubActivities = await loadFromGitHub('activities.json');
+                // Load data from backend
+                const serverLetters = await loadData('letters');
+                const serverActivities = await loadData('activities');
 
-                if (githubLetters) letters = githubLetters;
-                if (githubActivities) activities = githubActivities;
+                if (serverLetters) letters = serverLetters;
+                if (serverActivities) activities = serverActivities;
 
                 updateActivityLog();
                 updateStatistics();
@@ -349,9 +334,9 @@
                     displayLetters();
                 }
 
-                showNotification('Data berhasil disinkronkan dari GitHub!', 'success');
+                showNotification('Data berhasil disinkronkan dari server!', 'success');
             } catch (error) {
-                showNotification('Gagal sinkronisasi data dari GitHub!', 'error');
+                showNotification('Gagal sinkronisasi data dari server!', 'error');
             }
         }
 
@@ -473,17 +458,17 @@
                     
                     activities.unshift(activity);
                     
-                    // Save to GitHub
-                    const lettersSaved = await saveToGitHub(letters, 'letters.json');
-                    const activitiesSaved = await saveToGitHub(activities, 'activities.json');
+                    // Save to backend
+                    const lettersSaved = await saveData(letters, 'letters');
+                    const activitiesSaved = await saveData(activities, 'activities');
                     
                     if (lettersSaved && activitiesSaved) {
                         displayLetters();
                         updateActivityLog();
                         updateStatistics();
-                        showNotification('Surat berhasil dihapus dan disimpan ke GitHub!', 'success');
+                        showNotification('Surat berhasil dihapus dan disimpan ke server!', 'success');
                     } else {
-                        showNotification('Gagal menghapus dari GitHub!', 'error');
+                        showNotification('Gagal menghapus dari server!', 'error');
                     }
                 } else {
                     showNotification('Surat tidak ditemukan!', 'error');
@@ -515,22 +500,22 @@
             
             activities.unshift(activity);
 
-            // Save to GitHub
-            showNotification('Menyimpan ke GitHub...', 'info');
-            const lettersSaved = await saveToGitHub(letters, 'letters.json');
-            const activitiesSaved = await saveToGitHub(activities, 'activities.json');
+            // Save to backend
+            showNotification('Menyimpan ke server...', 'info');
+            const lettersSaved = await saveData(letters, 'letters');
+            const activitiesSaved = await saveData(activities, 'activities');
 
             if (lettersSaved && activitiesSaved) {
                 event.target.reset();
                 document.getElementById('letterDate').valueAsDate = new Date();
                 updateActivityLog();
                 updateStatistics();
-                showNotification('Surat berhasil disimpan ke GitHub!', 'success');
+                showNotification('Surat berhasil disimpan ke server!', 'success');
             } else {
-                // Remove from local arrays if GitHub save failed
+                // Remove from local arrays if save failed
                 letters.pop();
                 activities.shift();
-                showNotification('Gagal menyimpan ke GitHub!', 'error');
+                showNotification('Gagal menyimpan ke server!', 'error');
             }
         }
 
@@ -570,7 +555,7 @@
         async function clearLog() {
             if (confirm('Apakah Anda yakin ingin menghapus semua log aktivitas?')) {
                 activities = [];
-                await saveToGitHub(activities, 'activities.json');
+                await saveData(activities, 'activities');
                 updateActivityLog();
                 showNotification('Log aktivitas berhasil dihapus', 'info');
             }
@@ -622,5 +607,5 @@
             updateStatistics();
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9768e475b706cec2',t:'MTc1NjQzNzQxNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97694643d19ccec2',t:'MTc1NjQ0MTQyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
