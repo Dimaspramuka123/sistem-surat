@@ -3,609 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pencatatan Nomor Surat - GitHub Storage</title>
+    <title>Toko Produk Digital</title>
+    <!-- Memuat Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'inter': ['Inter', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Memuat font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icon untuk tombol tutup modal (dihapus) -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { 
-            font-family: 'Inter', sans-serif; 
+        /* Menggunakan font Inter sebagai default */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Transisi halus untuk modal */
+        #previewModal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #previewModal.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        #previewModal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        /* Transisi untuk kartu produk */
+        .product-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">Sistem Pencatatan Nomor Surat</h1>
-            <p class="text-gray-600">Data tersimpan terpusat di GitHub - Repository: Dimaspramuka123/sistem-surat</p>
-        </div>
+<body class="bg-gray-900 text-white min-h-screen">
 
-        <!-- Connection Status -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-bold text-gray-800">Status Koneksi GitHub</h2>
-                    <p class="text-gray-600">Repository: Dimaspramuka123/sistem-surat</p>
-                </div>
-                <div class="flex space-x-3">
-                    <div id="connectionStatus" class="px-4 py-2 bg-green-100 text-green-800 rounded-lg font-medium">
-                        ✅ Terhubung
-                    </div>
-                    <button onclick="syncData()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium">
-                        🔄 Sync Data
-                    </button>
-                </div>
+    <!-- Kontainer Utama -->
+    <div class="container mx-auto p-4 md:p-8">
+
+        <!-- Header: Judul dan Pencarian -->
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                Dysentra++
+            </h1>
+            <div class="max-w-lg mx-auto">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="Cari GUI, Model, Lagu..." 
+                    class="w-full px-5 py-3 rounded-full bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                >
             </div>
+        </header>
+
+        <!-- Galeri Produk -->
+        <main id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Kartu produk akan di-generate oleh JavaScript di sini -->
+        </main>
+
+        <!-- Pesan jika tidak ada hasil -->
+        <div id="no-results" class="text-center text-gray-400 text-xl mt-12 hidden">
+            <p>Oops! Produk tidak ditemukan.</p>
         </div>
 
-        <!-- Navigation Buttons -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="mainButtons">
-            <button onclick="showLetterForm('SK')" class="bg-red-500 hover:bg-red-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
-                <div class="flex items-center mb-3">
-                    <div class="text-3xl mr-3">📋</div>
-                    <div>
-                        <div class="text-lg font-bold">Surat Keputusan (SK)</div>
-                    </div>
-                </div>
-                <div class="text-sm opacity-90 leading-relaxed">
-                    Menetapkan suatu keputusan resmi seperti pengangkatan, penunjukan panitia, pembagian tugas, dll.
-                </div>
-            </button>
-            
-            <button onclick="showLetterForm('PR')" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
-                <div class="flex items-center mb-3">
-                    <div class="text-3xl mr-3">📢</div>
-                    <div>
-                        <div class="text-lg font-bold">Surat Pemberitahuan (PR)</div>
-                    </div>
-                </div>
-                <div class="text-sm opacity-90 leading-relaxed">
-                    Menyampaikan informasi resmi, termasuk pengumuman, perubahan jadwal, aturan baru, dll.
-                </div>
-            </button>
-            
-            <button onclick="showLetterForm('UD')" class="bg-green-500 hover:bg-green-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
-                <div class="flex items-center mb-3">
-                    <div class="text-3xl mr-3">✉️</div>
-                    <div>
-                        <div class="text-lg font-bold">Surat Undangan (UD)</div>
-                    </div>
-                </div>
-                <div class="text-sm opacity-90 leading-relaxed">
-                    Mengundang pihak terkait untuk rapat, pertemuan orang tua, kegiatan acara, pelatihan, dll.
-                </div>
-            </button>
-            
-            <button onclick="showLetterForm('SP')" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
-                <div class="flex items-center mb-3">
-                    <div class="text-3xl mr-3">📝</div>
-                    <div>
-                        <div class="text-lg font-bold">Surat Pernyataan (SP)</div>
-                    </div>
-                </div>
-                <div class="text-sm opacity-90 leading-relaxed">
-                    Berisi pernyataan atau komitmen dari seseorang. Bisa berupa izin, kesanggupan, atau pernyataan dukungan.
-                </div>
-            </button>
-            
-            <button onclick="showLetterForm('ST')" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
-                <div class="flex items-center mb-3">
-                    <div class="text-3xl mr-3">📋</div>
-                    <div>
-                        <div class="text-lg font-bold">Surat Tugas / Instruksi (ST)</div>
-                    </div>
-                </div>
-                <div class="text-sm opacity-90 leading-relaxed">
-                    Digunakan untuk menugaskan seseorang atau memberi arahan pelaksanaan kegiatan tertentu.
-                </div>
-            </button>
-            
-            <button onclick="showLetterForm('RM')" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200 text-left">
-                <div class="flex items-center mb-3">
-                    <div class="text-3xl mr-3">🏛️</div>
-                    <div>
-                        <div class="text-lg font-bold">Surat Rekomendasi / Keterangan / Legalitas (RM)</div>
-                    </div>
-                </div>
-                <div class="text-sm opacity-90 leading-relaxed">
-                    Digunakan untuk memberi keterangan resmi, rekomendasi, pengantar, atau legalitas atas nama lembaga.
-                </div>
-            </button>
-        </div>
-
-        <div class="grid lg:grid-cols-2 gap-8">
-            <!-- Form Section -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800" id="formTitle">Pilih Jenis Surat</h2>
-                    <button onclick="goHome()" id="homeButton" class="hidden bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
-                        🏠 Beranda
-                    </button>
-                </div>
-                
-                <div id="letterForm" class="hidden">
-                    <div id="letterExample" class="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                        <div class="flex items-start space-x-3">
-                            <div class="text-blue-500 text-xl">💡</div>
-                            <div>
-                                <div class="font-semibold text-blue-800 mb-1">Contoh Format Nomor Surat:</div>
-                                <div class="text-blue-700 font-mono text-sm" id="exampleFormat"></div>
-                                <div class="text-blue-600 text-xs mt-1" id="exampleDescription"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <form onsubmit="addLetter(event)">
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-medium mb-2">Nomor Surat</label>
-                            <div class="flex space-x-2">
-                                <input type="text" id="letterNumber" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan nomor surat" required>
-                                <button type="button" onclick="generateNumber()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors duration-200">
-                                    🔄 Auto
-                                </button>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">Klik "Auto" untuk generate nomor otomatis berdasarkan urutan</div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-medium mb-2">Perihal</label>
-                            <input type="text" id="letterSubject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Masukkan perihal surat" required>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-medium mb-2">Tanggal</label>
-                            <input type="date" id="letterDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                        </div>
-                        
-                        <div class="mb-6">
-                            <label class="block text-gray-700 text-sm font-medium mb-2">Keterangan</label>
-                            <textarea id="letterNotes" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Keterangan tambahan (opsional)"></textarea>
-                        </div>
-                        
-                        <div class="flex space-x-3">
-                            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
-                                💾 Simpan ke GitHub
-                            </button>
-                            <button type="button" onclick="viewLetters()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200">
-                                📋 Lihat Riwayat
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                
-                <div id="selectPrompt" class="text-center py-12">
-                    <div class="text-6xl mb-4">📄</div>
-                    <p class="text-gray-500">Pilih jenis surat di atas untuk mulai mencatat</p>
-                </div>
-
-                <div id="letterHistory" class="hidden">
-                    <div class="mb-4">
-                        <input type="text" id="searchInput" placeholder="Cari nomor surat atau perihal..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onkeyup="filterLetters()">
-                    </div>
-                    <div id="letterList" class="space-y-3 max-h-96 overflow-y-auto">
-                        <!-- Letters will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Activity Log -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">Log Kegiatan</h2>
-                    <div class="flex space-x-2">
-                        <button onclick="syncData()" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
-                            🔄 Sync
-                        </button>
-                        <button onclick="clearLog()" class="text-red-500 hover:text-red-700 text-sm font-medium">Hapus Semua</button>
-                    </div>
-                </div>
-                
-                <div id="activityLog" class="space-y-3 max-h-96 overflow-y-auto">
-                    <div class="text-center py-8 text-gray-500">
-                        <div class="text-4xl mb-2">📋</div>
-                        <p>Belum ada aktivitas</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Statistics -->
-        <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Statistik Surat</h3>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="statistics">
-                <div class="text-center p-4 bg-red-50 rounded-lg">
-                    <div class="text-2xl font-bold text-red-600" id="stat-SK">0</div>
-                    <div class="text-sm text-gray-600">SK</div>
-                </div>
-                <div class="text-center p-4 bg-blue-50 rounded-lg">
-                    <div class="text-2xl font-bold text-blue-600" id="stat-PR">0</div>
-                    <div class="text-sm text-gray-600">PR</div>
-                </div>
-                <div class="text-center p-4 bg-green-50 rounded-lg">
-                    <div class="text-2xl font-bold text-green-600" id="stat-UD">0</div>
-                    <div class="text-sm text-gray-600">UD</div>
-                </div>
-                <div class="text-center p-4 bg-purple-50 rounded-lg">
-                    <div class="text-2xl font-bold text-purple-600" id="stat-SP">0</div>
-                    <div class="text-sm text-gray-600">SP</div>
-                </div>
-                <div class="text-center p-4 bg-orange-50 rounded-lg">
-                    <div class="text-2xl font-bold text-orange-600" id="stat-ST">0</div>
-                    <div class="text-sm text-gray-600">ST</div>
-                </div>
-                <div class="text-center p-4 bg-teal-50 rounded-lg">
-                    <div class="text-2xl font-bold text-teal-600" id="stat-RM">0</div>
-                    <div class="text-sm text-gray-600">RM</div>
-                </div>
-            </div>
-        </div>
     </div>
 
+    <!-- Modal Pratinjau (Preview) Dihapus -->
+
     <script>
-        let currentLetterType = '';
-        let letters = [];
-        let activities = [];
-        
-        // Backend API configuration - Token aman di server
-        const API_BASE_URL = 'http://localhost:3000/api';  // Sesuaikan dengan port server Anda
-
-        const letterTypes = {
-            'SK': 'Surat Keputusan',
-            'PR': 'Surat Pemberitahuan', 
-            'UD': 'Surat Undangan',
-            'SP': 'Surat Pernyataan',
-            'ST': 'Surat Tugas / Instruksi',
-            'RM': 'Surat Rekomendasi/Keterangan/Legalitas'
-        };
-
-        const letterFormats = {
-            'SK': { example: '001/SD/SK/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/SK/[Bulan Romawi]/[Tahun]' },
-            'PR': { example: '001/SD/PR/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/PR/[Bulan Romawi]/[Tahun]' },
-            'UD': { example: '001/SD/UD/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/UD/[Bulan Romawi]/[Tahun]' },
-            'SP': { example: '001/SD/SP/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/SP/[Bulan Romawi]/[Tahun]' },
-            'ST': { example: '001/SD/ST/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/ST/[Bulan Romawi]/[Tahun]' },
-            'RM': { example: '001/SD/RM/VII/2025', description: 'Format: [Nomor Urut]/[Instansi]/RM/[Bulan Romawi]/[Tahun]' }
-        };
-
-        // Backend API Functions - Token aman di server
-        async function saveData(data, type) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/save`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        type: type,  // 'letters' atau 'activities'
-                        data: data
-                    })
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    return result.success;
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATABASE PRODUK ANDA ---
+            // Ganti data ini dengan produk Anda.
+            // 'purchaseLink' adalah link ke halaman pembayaran pihak ketiga.
+            // 'previewContent' (dihapus)
+            const allProducts = [
+                {
+                    id: 1,
+                    name: 'Head GUI AFK System',
+                    description: 'Memiliki rank Owner, Admin, VIP, dsb., menggunakan command /rank untuk merubah Status Rank',
+                    price: 'Rp 50.000',
+                    imageUrl: 'https://imgur.com/gallery/headguiafk-1KbKxJS#ch7VaJQ',
+                    purchaseLink: 'http://lynk.id/dysentra++/xg3qve8dnedg'
+                },
+                {
+                    id: 2,
+                    name: 'Template Presentasi "Pro"',
+                    description: '50+ slide template profesional untuk PowerPoint dan Google Slides.',
+                    price: 'Rp 200.000',
+                    imageUrl: 'https://placehold.co/600x400/2ecc71/ffffff?text=Template+Pro',
+                    purchaseLink: 'https://example.com/checkout/template-pro'
+                },
+                {
+                    id: 3,
+                    name: 'Paket 1000 Ikon Vektor',
+                    description: 'Koleksi ikon premium dalam format SVG, PNG, dan AI untuk proyek Anda.',
+                    price: 'Rp 120.000',
+                    imageUrl: 'https://placehold.co/600x400/9b59b6/ffffff?text=Paket+Ikon',
+                    purchaseLink: 'https://example.com/checkout/paket-ikon'
+                },
+                {
+                    id: 4,
+                    name: 'Plugin SEO WordPress',
+                    description: 'Optimalkan situs WordPress Anda untuk mesin pencari dengan plugin canggih ini.',
+                    price: 'Rp 350.000',
+                    imageUrl: 'https://placehold.co/600x400/f1c40f/ffffff?text=Plugin+SEO',
+                    purchaseLink: 'https://example.com/checkout/plugin-seo'
+                },
+                {
+                    id: 5,
+                    name: 'Kursus Online Fotografi',
+                    description: 'Belajar teknik fotografi dari dasar hingga mahir bersama instruktur profesional.',
+                    price: 'Rp 500.000',
+                    imageUrl: 'https://placehold.co/600x400/e74c3c/ffffff?text=Kursus+Foto',
+                    purchaseLink: 'https://example.com/checkout/kursus-foto'
+                },
+                {
+                    id: 6,
+                    name: 'UI Kit Aplikasi Mobile',
+                    description: 'Ratusan komponen UI Kit untuk Figma dan Sketch untuk mempercepat desain aplikasi.',
+                    price: 'Rp 250.000',
+                    imageUrl: 'https://placehold.co/600x400/1abc9c/ffffff?text=UI+Kit',
+                    purchaseLink: 'https://example.com/checkout/ui-kit'
                 }
-                return false;
-            } catch (error) {
-                console.error('Error saving data:', error);
-                return false;
-            }
-        }
+            ];
 
-        async function loadData(type) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/load/${type}`);
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    return result.data;
-                }
-            } catch (error) {
-                console.error('Error loading data:', error);
-            }
-            return null;
-        }
-
-        async function syncData() {
-            showNotification('Sinkronisasi data dari server...', 'info');
-
-            try {
-                // Load data from backend
-                const serverLetters = await loadData('letters');
-                const serverActivities = await loadData('activities');
-
-                if (serverLetters) letters = serverLetters;
-                if (serverActivities) activities = serverActivities;
-
-                updateActivityLog();
-                updateStatistics();
-                if (document.getElementById('letterHistory').classList.contains('hidden') === false) {
-                    displayLetters();
-                }
-
-                showNotification('Data berhasil disinkronkan dari server!', 'success');
-            } catch (error) {
-                showNotification('Gagal sinkronisasi data dari server!', 'error');
-            }
-        }
-
-        // UI Functions
-        function showLetterForm(type) {
-            currentLetterType = type;
-            document.getElementById('formTitle').textContent = `Form ${letterTypes[type]} (${type})`;
-            document.getElementById('letterForm').classList.remove('hidden');
-            document.getElementById('selectPrompt').classList.add('hidden');
-            document.getElementById('letterHistory').classList.add('hidden');
-            document.getElementById('homeButton').classList.remove('hidden');
+            // Elemen DOM
+            const productGrid = document.getElementById('product-grid');
+            const searchInput = document.getElementById('search-input');
+            const noResults = document.getElementById('no-results');
             
-            document.getElementById('exampleFormat').textContent = letterFormats[type].example;
-            document.getElementById('exampleDescription').textContent = letterFormats[type].description;
-            
-            document.getElementById('letterDate').valueAsDate = new Date();
-            document.getElementById('letterNumber').value = '';
-            document.getElementById('letterSubject').value = '';
-            document.getElementById('letterNotes').value = '';
-        }
+            // Elemen Modal (Dihapus)
 
-        function goHome() {
-            document.getElementById('formTitle').textContent = 'Pilih Jenis Surat';
-            document.getElementById('letterForm').classList.add('hidden');
-            document.getElementById('letterHistory').classList.add('hidden');
-            document.getElementById('selectPrompt').classList.remove('hidden');
-            document.getElementById('homeButton').classList.add('hidden');
-            currentLetterType = '';
-        }
+            /**
+             * Fungsi untuk merender (menampilkan) produk ke dalam grid
+             * @param {Array} products - Array produk yang ingin ditampilkan
+             */
+            function renderProducts(products) {
+                // Kosongkan grid sebelum mengisi
+                productGrid.innerHTML = '';
 
-        function viewLetters() {
-            document.getElementById('formTitle').textContent = `Riwayat ${letterTypes[currentLetterType]} (${currentLetterType})`;
-            document.getElementById('letterForm').classList.add('hidden');
-            document.getElementById('selectPrompt').classList.add('hidden');
-            document.getElementById('letterHistory').classList.remove('hidden');
-            displayLetters();
-        }
-
-        function displayLetters() {
-            const letterList = document.getElementById('letterList');
-            const filteredLetters = letters.filter(letter => letter.type === currentLetterType);
-            
-            if (filteredLetters.length === 0) {
-                letterList.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <div class="text-4xl mb-2">📄</div>
-                        <p>Belum ada surat ${letterTypes[currentLetterType]}</p>
-                    </div>
-                `;
-                return;
-            }
-
-            letterList.innerHTML = filteredLetters.sort((a, b) => new Date(b.date) - new Date(a.date)).map(letter => `
-                <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="font-semibold text-gray-800">${letter.number}</div>
-                        <div class="text-sm text-gray-500">${new Date(letter.date).toLocaleDateString('id-ID')}</div>
-                    </div>
-                    <div class="text-gray-700 mb-2">${letter.subject}</div>
-                    ${letter.notes ? `<div class="text-sm text-gray-600 italic">${letter.notes}</div>` : ''}
-                    <div class="flex justify-end mt-3">
-                        <button onclick="deleteLetter(${letter.id})" class="text-red-500 hover:text-red-700 text-sm font-medium">
-                            🗑️ Hapus
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function filterLetters() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const letterList = document.getElementById('letterList');
-            const filteredLetters = letters.filter(letter => 
-                letter.type === currentLetterType && 
-                (letter.number.toLowerCase().includes(searchTerm) || 
-                 letter.subject.toLowerCase().includes(searchTerm))
-            );
-            
-            if (filteredLetters.length === 0) {
-                letterList.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <div class="text-4xl mb-2">🔍</div>
-                        <p>Tidak ada surat yang ditemukan</p>
-                    </div>
-                `;
-                return;
-            }
-
-            letterList.innerHTML = filteredLetters.sort((a, b) => new Date(b.date) - new Date(a.date)).map(letter => `
-                <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="font-semibold text-gray-800">${letter.number}</div>
-                        <div class="text-sm text-gray-500">${new Date(letter.date).toLocaleDateString('id-ID')}</div>
-                    </div>
-                    <div class="text-gray-700 mb-2">${letter.subject}</div>
-                    ${letter.notes ? `<div class="text-sm text-gray-600 italic">${letter.notes}</div>` : ''}
-                    <div class="flex justify-end mt-3">
-                        <button onclick="deleteLetter(${letter.id})" class="text-red-500 hover:text-red-700 text-sm font-medium">
-                            🗑️ Hapus
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function deleteLetter(letterId) {
-            if (confirm('Apakah Anda yakin ingin menghapus surat ini?')) {
-                const letterToDelete = letters.find(letter => letter.id === letterId);
-                
-                if (letterToDelete) {
-                    letters = letters.filter(letter => letter.id !== letterId);
-                    
-                    const activity = {
-                        id: Date.now(),
-                        action: 'Menghapus surat',
-                        details: `${letterTypes[letterToDelete.type]} - ${letterToDelete.number}`,
-                        timestamp: new Date().toLocaleString('id-ID')
-                    };
-                    
-                    activities.unshift(activity);
-                    
-                    // Save to backend
-                    const lettersSaved = await saveData(letters, 'letters');
-                    const activitiesSaved = await saveData(activities, 'activities');
-                    
-                    if (lettersSaved && activitiesSaved) {
-                        displayLetters();
-                        updateActivityLog();
-                        updateStatistics();
-                        showNotification('Surat berhasil dihapus dan disimpan ke server!', 'success');
-                    } else {
-                        showNotification('Gagal menghapus dari server!', 'error');
-                    }
+                if (products.length === 0) {
+                    noResults.classList.remove('hidden');
                 } else {
-                    showNotification('Surat tidak ditemukan!', 'error');
+                    noResults.classList.add('hidden');
                 }
-            }
-        }
 
-        async function addLetter(event) {
-            event.preventDefault();
-            
-            const letterData = {
-                id: Date.now(),
-                type: currentLetterType,
-                number: document.getElementById('letterNumber').value,
-                subject: document.getElementById('letterSubject').value,
-                date: document.getElementById('letterDate').value,
-                notes: document.getElementById('letterNotes').value,
-                createdAt: new Date().toISOString()
-            };
-
-            letters.push(letterData);
-
-            const activity = {
-                id: Date.now(),
-                action: 'Menambah surat',
-                details: `${letterTypes[currentLetterType]} - ${letterData.number}`,
-                timestamp: new Date().toLocaleString('id-ID')
-            };
-            
-            activities.unshift(activity);
-
-            // Save to backend
-            showNotification('Menyimpan ke server...', 'info');
-            const lettersSaved = await saveData(letters, 'letters');
-            const activitiesSaved = await saveData(activities, 'activities');
-
-            if (lettersSaved && activitiesSaved) {
-                event.target.reset();
-                document.getElementById('letterDate').valueAsDate = new Date();
-                updateActivityLog();
-                updateStatistics();
-                showNotification('Surat berhasil disimpan ke server!', 'success');
-            } else {
-                // Remove from local arrays if save failed
-                letters.pop();
-                activities.shift();
-                showNotification('Gagal menyimpan ke server!', 'error');
-            }
-        }
-
-        function updateActivityLog() {
-            const logContainer = document.getElementById('activityLog');
-            
-            if (activities.length === 0) {
-                logContainer.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <div class="text-4xl mb-2">📋</div>
-                        <p>Belum ada aktivitas</p>
-                    </div>
-                `;
-                return;
+                products.forEach(product => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col';
+                    card.innerHTML = `
+                        <img src="${product.imageUrl}" alt="${product.name}" class="w-full h-48 object-cover">
+                        <div class="p-5 flex flex-col flex-grow">
+                            <h3 class="text-xl font-semibold mb-2">${product.name}</h3>
+                            <p class="text-gray-400 text-sm mb-4 flex-grow">${product.description}</p>
+                            <div class="text-lg font-bold text-blue-400 mb-4">${product.price}</div>
+                            <div class="mt-auto"> <!-- Tombol pratinjau dihapus, 'Beli' jadi full width -->
+                                <button 
+                                    class="buy-btn w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                                    data-link="${product.purchaseLink}">
+                                    Beli Sekarang
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    productGrid.appendChild(card);
+                });
             }
 
-            logContainer.innerHTML = activities.slice(0, 10).map(activity => `
-                <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div class="text-blue-500 mt-1">📝</div>
-                    <div class="flex-1">
-                        <div class="font-medium text-gray-800">${activity.action}</div>
-                        <div class="text-sm text-gray-600">${activity.details}</div>
-                        <div class="text-xs text-gray-400 mt-1">${activity.timestamp}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
+            /**
+             * Fungsi untuk menangani pencarian
+             */
+            function handleSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const filteredProducts = allProducts.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm) || 
+                    product.description.toLowerCase().includes(searchTerm)
+                );
+                renderProducts(filteredProducts);
+            }
 
-        function updateStatistics() {
-            const stats = {};
-            Object.keys(letterTypes).forEach(type => {
-                stats[type] = letters.filter(letter => letter.type === type).length;
-                document.getElementById(`stat-${type}`).textContent = stats[type];
+            /**
+             * Fungsi untuk menampilkan modal pratinjau (Dihapus)
+             */
+
+            /**
+             * Fungsi untuk menyembunyikan modal (Dihapus)
+             */
+
+            // --- Event Listeners ---
+
+            // Tampilkan semua produk saat halaman dimuat
+            renderProducts(allProducts);
+
+            // Listener untuk input pencarian
+            searchInput.addEventListener('input', handleSearch);
+
+            // Listener untuk tombol di grid (Preview dan Beli)
+            productGrid.addEventListener('click', (e) => {
+                const target = e.target;
+                
+                // Cek tombol Pratinjau (Dihapus)
+                
+                // Cek tombol Beli
+                if (target.classList.contains('buy-btn') || target.closest('.buy-btn')) {
+                    const button = target.closest('.buy-btn');
+                    const link = button.dataset.link;
+                    // Buka link di tab baru
+                    window.open(link, '_blank');
+                }
             });
-        }
 
-        async function clearLog() {
-            if (confirm('Apakah Anda yakin ingin menghapus semua log aktivitas?')) {
-                activities = [];
-                await saveData(activities, 'activities');
-                updateActivityLog();
-                showNotification('Log aktivitas berhasil dihapus', 'info');
-            }
-        }
-
-        async function generateNumber() {
-            const currentDate = new Date();
-            const currentYear = currentDate.getFullYear();
-            const currentMonth = currentDate.getMonth() + 1;
-            
-            const romanMonths = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
-            const romanMonth = romanMonths[currentMonth - 1];
-            
-            const existingLetters = letters.filter(letter => {
-                if (letter.type !== currentLetterType) return false;
-                const letterDate = new Date(letter.date);
-                return letterDate.getFullYear() === currentYear && letterDate.getMonth() === currentMonth - 1;
-            });
-            
-            const nextNumber = (existingLetters.length + 1).toString().padStart(3, '0');
-            const generatedNumber = `${nextNumber}/SD/${currentLetterType}/${romanMonth}/${currentYear}`;
-            
-            document.getElementById('letterNumber').value = generatedNumber;
-            showNotification('Nomor surat berhasil di-generate!', 'success');
-        }
-
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            let bgColor = 'bg-blue-500';
-            if (type === 'success') bgColor = 'bg-green-500';
-            if (type === 'error') bgColor = 'bg-red-500';
-            if (type === 'info') bgColor = 'bg-blue-500';
-            
-            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${bgColor} text-white font-medium`;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Auto sync data on load
-            syncData();
-            updateActivityLog();
-            updateStatistics();
+            // Listener untuk menutup modal (Dihapus)
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97694643d19ccec2',t:'MTc1NjQ0MTQyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
+
+
